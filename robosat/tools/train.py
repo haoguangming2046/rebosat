@@ -26,7 +26,7 @@ from robosat.transforms import (
 from robosat.datasets import SlippyMapTilesConcatenation
 from robosat.metrics import MeanIoU
 from robosat.losses import CrossEntropyLoss2d
-from robosat.unet import UNet
+from robosat.fpn import FPNSegmentation
 from robosat.utils import plot
 from robosat.config import load_config
 
@@ -51,13 +51,10 @@ def main(args):
     if model["common"]["cuda"] and not torch.cuda.is_available():
         sys.exit("Error: CUDA requested but not available")
 
-    # if args.batch_size < 2:
-    #     sys.exit('Error: PSPNet requires more than one image for BatchNorm in Pyramid Pooling')
-
     os.makedirs(model["common"]["checkpoint"], exist_ok=True)
 
     num_classes = len(dataset["common"]["classes"])
-    net = UNet(num_classes).to(device)
+    net = FPNSegmentation(num_classes).to(device)
 
     if model["common"]["cuda"]:
         torch.backends.cudnn.benchmark = True
@@ -66,9 +63,7 @@ def main(args):
     optimizer = Adam(net.parameters(), lr=model["opt"]["lr"], weight_decay=model["opt"]["decay"])
 
     weight = torch.Tensor(dataset["weights"]["values"])
-
     criterion = CrossEntropyLoss2d(weight=weight).to(device)
-    # criterion = FocalLoss2d(weight=weight).to(device)
 
     train_loader, val_loader = get_dataset_loaders(model, dataset)
 

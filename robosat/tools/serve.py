@@ -16,7 +16,7 @@ from PIL import Image
 from flask import Flask, send_file, render_template, abort
 
 from robosat.tiles import fetch_image
-from robosat.unet import UNet
+from robosat.fpn import FPNSegmentation
 from robosat.config import load_config
 from robosat.colors import make_palette
 from robosat.transforms import ConvertImageMode, ImageToTensor
@@ -180,7 +180,7 @@ class Predictor:
 
         num_classes = len(self.dataset["common"]["classes"])
 
-        net = UNet(num_classes).to(self.device)
+        net = FPNSegmentation(num_classes).to(self.device)
         net = nn.DataParallel(net)
 
         if self.cuda:
